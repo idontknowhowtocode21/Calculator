@@ -27,15 +27,14 @@
             font-family: 'sans-serif-light', 'Roboto-Light', sans-serif;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevents bouncing/scrolling */
+            overflow: hidden;
         }
 
-        /* Top Nav */
         .top-nav {
             display: flex;
             justify-content: space-between;
             padding: 20px;
-            padding-top: env(safe-area-inset-top, 25px); /* Fix for notch phones */
+            padding-top: env(safe-area-inset-top, 25px);
         }
 
         .icon-svg {
@@ -44,26 +43,29 @@
             fill: var(--text-dim);
         }
 
-        /* Display Area - Takes up remaining space */
         #display-container {
-            flex: 1; 
+            flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             align-items: flex-end;
             padding: 20px 30px;
+            /* Prevents the container from expanding vertically with text */
+            overflow: hidden; 
         }
 
         #result {
             font-size: 5rem;
             color: var(--text-white);
             font-weight: 200;
-            word-break: break-all;
             text-align: right;
-            line-height: 1;
+            line-height: 1.2;
+            /* CRITICAL FIXES FOR SINGLE LINE: */
+            white-space: nowrap; 
+            overflow: hidden;
+            width: 100%;
         }
 
-        /* Keypad - Fixed at bottom */
         #keypad {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -148,10 +150,16 @@
 
     function updateDisplay() {
         resultEl.innerText = currentInput || "0";
+        
+        // Dynamic font resizing logic to prevent long numbers from looking too cramped
         let len = resultEl.innerText.length;
-        if (len > 12) resultEl.style.fontSize = "2.5rem";
+        if (len > 15) resultEl.style.fontSize = "1.8rem";
+        else if (len > 11) resultEl.style.fontSize = "2.5rem";
         else if (len > 7) resultEl.style.fontSize = "3.5rem";
         else resultEl.style.fontSize = "5rem";
+        
+        // Scroll to the right so the most recent part of the math is visible
+        resultEl.scrollLeft = resultEl.scrollWidth;
     }
 
     function append(char) {
