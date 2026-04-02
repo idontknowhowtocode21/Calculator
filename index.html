@@ -2,169 +2,189 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calculator</title>
     <style>
         :root {
-            --bg: #000000;
-            --btn-num: #333333;
-            --btn-op: #2C2C2C; /* Darker grey for top row as seen in video */
-            --btn-action: #FF9F0A; /* The orange = button */
-            --text-main: #FFFFFF;
-            --text-history: #757575;
+            --bg-color: #000000;
+            --btn-gray: #2c2c2c;
+            --btn-light-gray: #7d7d7d;
+            --btn-orange: #f39c12;
+            --text-white: #ffffff;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body { 
-            background: var(--bg); margin: 0; padding: 0;
-            font-family: 'Roboto', sans-serif; /* Standard Android font */
-            display: flex; flex-direction: column; height: 100vh;
-            justify-content: flex-end; overflow: hidden;
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Display Area */
-        #display-area {
-            padding: 20px 24px;
-            text-align: right;
-            flex-grow: 1;
+        #display-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
+            align-items: flex-end;
+            padding: 20px;
+            color: var(--text-white);
         }
 
-        #history { 
-            color: var(--text-history); 
-            font-size: 24px; 
-            min-height: 32px;
-            margin-bottom: 8px;
+        #history {
+            font-size: 1.5rem;
+            color: #888;
+            min-height: 1.6rem;
         }
 
-        #main-display { 
-            color: var(--text-main); 
-            font-size: 72px; 
-            font-weight: 300;
-            white-space: nowrap;
-            overflow-x: auto;
+        #result {
+            font-size: 4rem;
+            margin-top: 10px;
+            word-wrap: break-word;
+            max-width: 100%;
         }
 
-        /* The blue cursor from your video */
-        #main-display::after {
-            content: "|";
-            color: #4b86f7;
-            margin-left: 2px;
-            font-weight: 100;
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 20px;
+            padding-bottom: 40px;
         }
 
-        /* Buttons Grid */
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 14px; 
-            padding: 10px 18px 30px 18px;
-        }
-
-        button { 
-            border: none; 
-            aspect-ratio: 1; 
-            border-radius: 50%; 
-            font-size: 28px; 
-            color: white; 
+        button {
+            aspect-ratio: 1 / 1;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.8rem;
+            color: var(--text-white);
+            background-color: var(--btn-gray);
             cursor: pointer;
-            display: flex; 
-            align-items: center; 
+            outline: none;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            transition: background 0.1s;
+            transition: opacity 0.1s;
         }
 
-        /* Button Colors based on video */
-        .n { background: var(--btn-num); } /* Numbers */
-        .o { background: var(--btn-op); }  /* Top row & operators */
-        .equals { background: #E67E22; }    /* Samsung Orange */
-        
-        button:active { filter: brightness(1.5); }
+        button:active {
+            opacity: 0.7;
+        }
 
-        .plus-minus { font-size: 20px; }
+        .op-btn {
+            background-color: var(--btn-gray);
+            color: var(--btn-orange);
+            font-size: 2.2rem;
+        }
+
+        .util-btn {
+            background-color: var(--btn-gray);
+            color: #a5a5a5;
+        }
+
+        .equals {
+            background-color: var(--btn-orange);
+            color: white;
+        }
+
+        /* Specific for '0' if you want it wider, but the video uses a grid */
     </style>
 </head>
 <body>
 
-    <div id="secret-layer" style="display:none;"></div>
+<div id="display-container">
+    <div id="history"></div>
+    <div id="result">0</div>
+</div>
 
-    <div id="display-area">
-        <div id="history"></div>
-        <div id="main-display">0</div>
-    </div>
+<div id="keypad">
+    <button class="util-btn" onclick="clearAll()">C</button>
+    <button class="util-btn" onclick="append('%')">%</button>
+    <button class="util-btn" onclick="backspace()">⌫</button>
+    <button class="op-btn" onclick="append('÷')">÷</button>
 
-    <div class="grid">
-        <button class="o" onclick="clearAll()">C</button>
-        <button class="o" onclick="addChar('%')">%</button>
-        <button class="o" onclick="backspace()">⌫</button>
-        <button class="o" onclick="addChar('/')">÷</button>
+    <button onclick="append('7')">7</button>
+    <button onclick="append('8')">8</button>
+    <button onclick="append('9')">9</button>
+    <button class="op-btn" onclick="append('×')">×</button>
+
+    <button onclick="append('4')">4</button>
+    <button onclick="append('5')">5</button>
+    <button onclick="append('6')">6</button>
+    <button class="op-btn" onclick="append('-')">-</button>
+
+    <button onclick="append('1')">1</button>
+    <button onclick="append('2')">2</button>
+    <button onclick="append('3')">3</button>
+    <button class="op-btn" onclick="append('+')">+</button>
+
+    <button onclick="toggleSign()">+/-</button>
+    <button onclick="append('0')">0</button>
+    <button onclick="append('.')">.</button>
+    <button class="equals" onclick="calculate()">=</button>
+</div>
+
+<script>
+    let currentInput = "";
+    let history = "";
+
+    const resultEl = document.getElementById('result');
+    const historyEl = document.getElementById('history');
+
+    function updateDisplay() {
+        resultEl.innerText = currentInput || "0";
+        historyEl.innerText = history;
         
-        <button class="n" onclick="addChar('7')">7</button>
-        <button class="n" onclick="addChar('8')">8</button>
-        <button class="n" onclick="addChar('9')">9</button>
-        <button class="o" onclick="addChar('*')">×</button>
-        
-        <button class="n" onclick="addChar('4')">4</button>
-        <button class="n" onclick="addChar('5')">5</button>
-        <button class="n" onclick="addChar('6')">6</button>
-        <button class="o" onclick="addChar('-')">−</button>
-        
-        <button class="n" onclick="addChar('1')">1</button>
-        <button class="n" onclick="addChar('2')">2</button>
-        <button class="n" onclick="addChar('3')">3</button>
-        <button class="o" onclick="addChar('+')">+</button>
-        
-        <button class="n plus-minus">+/−</button>
-        <button class="n" onclick="addChar('0')">0</button>
-        <button class="n" onclick="addChar('.')">.</button>
-        <button class="equals" onclick="calculate()">=</button>
-    </div>
-
-    <script>
-        let currentString = "";
-        const historyDiv = document.getElementById('history');
-        const displayDiv = document.getElementById('main-display');
-
-        function addChar(char) {
-            currentString += char;
-            updateUI();
+        // Auto-scale font size if number gets too long
+        if (resultEl.innerText.length > 8) {
+            resultEl.style.fontSize = "2.5rem";
+        } else {
+            resultEl.style.fontSize = "4rem";
         }
+    }
 
-        function clearAll() {
-            currentString = "";
-            historyDiv.innerText = "";
-            updateUI();
-        }
+    function append(char) {
+        if (currentInput === "0" && char !== ".") currentInput = "";
+        currentInput += char;
+        updateDisplay();
+    }
 
-        function backspace() {
-            currentString = currentString.slice(0, -1);
-            updateUI();
-        }
+    function clearAll() {
+        currentInput = "";
+        history = "";
+        updateDisplay();
+    }
 
-        function updateUI() {
-            displayDiv.innerText = currentString || "0";
-            // Logic for history preview (light grey text) can go here later
-        }
+    function backspace() {
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+    }
 
-        function calculate() {
-            if (!currentString) return;
-            try {
-                // Formatting for math
-                let formula = currentString.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
-                let result = eval(formula);
-                
-                historyDiv.innerText = currentString;
-                currentString = result.toString();
-                updateUI();
-            } catch (e) {
-                displayDiv.innerText = "Error";
-            }
+    function calculate() {
+        try {
+            // Replace visual symbols with JS math symbols
+            let logicInput = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+            history = currentInput + " =";
+            currentInput = eval(logicInput).toString();
+            updateDisplay();
+        } catch (e) {
+            currentInput = "Error";
+            updateDisplay();
         }
-    </script>
+    }
+
+    function toggleSign() {
+        if (currentInput.startsWith('-')) {
+            currentInput = currentInput.substring(1);
+        } else {
+            currentInput = '-' + currentInput;
+        }
+        updateDisplay();
+    }
+</script>
+
 </body>
 </html>
