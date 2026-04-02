@@ -1,92 +1,73 @@
-const displayElement = document.getElementById('display');
-const previewElement = document.getElementById('preview');
-const inputLine = document.querySelector('.input-line');
+const display = document.getElementById('display');
+const preview = document.getElementById('preview');
 let currentInput = '0';
 
-// MAGIC: Indian Number System Formatter (2,2,3 grouping)
-function formatIndian(val) {
-    if (!val) return '0';
-    let x = val.toString();
-    let afterPoint = '';
-    if (x.indexOf('.') > -1) afterPoint = x.substring(x.indexOf('.'));
-    x = Math.floor(x).toString();
-    let lastThree = x.substring(x.length - 3);
-    let otherNumbers = x.substring(0, x.length - 3);
-    if (otherNumbers != '') lastThree = ',' + lastThree;
-    let res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
-    return res;
+// Indian Formatting Logic
+function formatIn(numStr) {
+    if (isNaN(numStr.replace(/,/g, ''))) return numStr;
+    let [int, dec] = numStr.split('.');
+    let lastThree = int.slice(-3);
+    let other = int.slice(0, -3);
+    if (other !== '') lastThree = ',' + lastThree;
+    let res = other.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+    return dec !== undefined ? res + "." + dec : res;
 }
 
-function updateDisplay() {
-    // 1. Set the raw text (using × and ÷ symbols)
-    displayElement.innerText = currentInput;
-
-    // 2. MAGIC: Auto-Font Scaling
-    let fontSize = 5; // Start at 5rem
-    inputLine.style.fontSize = fontSize + 'rem';
+function updateUI() {
+    display.innerText = currentInput;
     
-    // Check if text is wider than the screen (minus padding)
-    let maxWidth = inputLine.clientWidth - 40;
-    while (displayElement.offsetWidth > maxWidth && fontSize > 2.0) {
-        fontSize -= 0.2;
-        inputLine.style.fontSize = fontSize + 'rem';
+    // Smooth Auto-Scaling
+    let fontSize = 5; // rem
+    display.style.fontSize = fontSize + 'rem';
+    
+    // Step down font size if it overflows
+    const maxWidth = display.parentElement.clientWidth * 0.9;
+    while (display.offsetWidth > maxWidth && fontSize > 2.2) {
+        fontSize -= 0.3;
+        display.style.fontSize = fontSize + 'rem';
     }
 
-    // 3. Live Preview Logic
+    // Live Preview
     if (/[+×÷\-]/.test(currentInput)) {
         try {
-            // Swap symbols for math-ready characters
-            let mathString = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
-            let result = eval(mathString);
-            if (result !== undefined && result.toString() !== currentInput) {
-                previewElement.innerText = formatIndian(result);
-            } else {
-                previewElement.innerText = '';
-            }
-        } catch (e) {
-            previewElement.innerText = '';
-        }
+            let mathStr = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+            let res = eval(mathStr);
+            preview.innerText = formatIn(res.toString());
+        } catch (e) { preview.innerText = ''; }
     } else {
-        previewElement.innerText = '';
+        preview.innerText = '';
     }
 }
 
-function appendToDisplay(value) {
-    if (currentInput === '0' && value !== '.') {
-        currentInput = value;
-    } else {
-        currentInput += value;
-    }
-    updateDisplay();
+function appendToDisplay(val) {
+    if (currentInput === '0' && val !== '.') currentInput = val;
+    else currentInput += val;
+    updateUI();
 }
 
 function clearDisplay() {
     currentInput = '0';
-    updateDisplay();
+    updateUI();
 }
 
 function backspace() {
     currentInput = currentInput.length > 1 ? currentInput.slice(0, -1) : '0';
-    updateDisplay();
+    updateUI();
 }
 
 function calculate() {
     try {
-        let mathString = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
-        let finalResult = eval(mathString).toString();
-        
-        // Final result matches the position of the input
-        currentInput = finalResult;
-        previewElement.innerText = '';
-        updateDisplay();
-    } catch (e) {
-        displayElement.innerText = 'Error';
-    }
+        let mathStr = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+        currentInput = eval(mathStr).toString();
+        preview.innerText = '';
+        display.style.fontSize = '5rem';
+        updateUI();
+    } catch (e) { display.innerText = "Error"; }
 }
 
 function toggleSign() {
     if (currentInput !== '0') {
         currentInput = (parseFloat(currentInput) * -1).toString();
-        updateDisplay();
+        updateUI();
     }
 }
