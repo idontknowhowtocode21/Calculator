@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Calculator</title>
     <style>
         :root {
-            /* Exact Xiaomi Dark Mode Colors */
             --bg-black: #000000;
-            --btn-gray: #1c1c1e; /* Darker tile color */
+            --btn-gray: #1c1c1e;
             --text-white: #ffffff;
             --text-dim: #8e8e93;
             --accent-orange: #f39c12;
@@ -18,7 +16,6 @@
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            font-family: 'sans-serif-light', 'HelveticaNeue-Light', 'Roboto-Light', sans-serif;
         }
 
         body, html {
@@ -26,26 +23,26 @@
             padding: 0;
             height: 100%;
             background-color: var(--bg-black);
+            font-family: 'sans-serif-light', 'Roboto-Light', sans-serif;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* Top Bar with Icons */
+        /* Top Bar Icons */
         .top-nav {
             display: flex;
             justify-content: space-between;
-            padding: 15px 20px;
-            padding-top: 25px;
+            padding: 25px 20px 10px;
         }
 
         .icon-svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             fill: var(--text-dim);
         }
 
-        /* Result Area */
+        /* Display Area */
         #display-container {
             flex: 1;
             display: flex;
@@ -58,8 +55,9 @@
         #result {
             font-size: 5rem;
             color: var(--text-white);
-            font-weight: 200; /* Thinner font like the original */
-            transition: font-size 0.1s ease;
+            font-weight: 200;
+            word-break: break-all;
+            text-align: right;
         }
 
         /* Keypad */
@@ -89,20 +87,10 @@
             background-color: #3a3a3c;
         }
 
-        /* Specific text colors */
         .op-text { color: var(--accent-orange); font-size: 2.2rem; }
         .util-text { color: var(--text-dim); }
-        
-        .equals-btn {
-            background-color: var(--accent-orange);
-            color: white;
-        }
-        
-        .equals-btn:active {
-            background-color: #d68910;
-        }
+        .equals-btn { background-color: var(--accent-orange); color: white; }
 
-        /* Custom Backspace Icon Alignment */
         .backspace-svg {
             width: 28px;
             fill: var(--text-dim);
@@ -113,90 +101,3 @@
 
 <div class="top-nav">
     <svg class="icon-svg" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-    
-    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 4h2v2h-2V7zm0 4h2v2h-2v-2zm-4-4h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm10 2h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/></svg>
-</div>
-
-<div id="display-container">
-    <div id="result">0</div>
-</div>
-
-<div id="keypad">
-    <button class="util-text" onclick="clearAll()">C</button>
-    <button class="util-text" onclick="append('%')">%</button>
-    <button onclick="backspace()">
-        <svg class="backspace-svg" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
-    </button>
-    <button class="op-text" onclick="append('÷')">÷</button>
-
-    <button onclick="append('7')">7</button>
-    <button onclick="append('8')">8</button>
-    <button onclick="append('9')">9</button>
-    <button class="op-text" onclick="append('×')">×</button>
-
-    <button onclick="append('4')">4</button>
-    <button onclick="append('5')">5</button>
-    <button onclick="append('6')">6</button>
-    <button class="op-text" onclick="append('-')">-</button>
-
-    <button onclick="append('1')">1</button>
-    <button onclick="append('2')">2</button>
-    <button onclick="append('3')">3</button>
-    <button class="op-text" onclick="append('+')">+</button>
-
-    <button onclick="toggleSign()">+/-</button>
-    <button onclick="append('0')">0</button>
-    <button onclick="append('.')">.</button>
-    <button class="equals-btn" onclick="calculate()">=</button>
-</div>
-
-<script>
-    let currentInput = "";
-    const resultEl = document.getElementById('result');
-
-    function updateDisplay() {
-        resultEl.innerText = currentInput || "0";
-        
-        // Dynamic font resizing for long numbers
-        let len = resultEl.innerText.length;
-        if (len > 12) resultEl.style.fontSize = "2.5rem";
-        else if (len > 7) resultEl.style.fontSize = "3.5rem";
-        else resultEl.style.fontSize = "5rem";
-    }
-
-    function append(char) {
-        if (currentInput === "0" && char !== ".") currentInput = "";
-        currentInput += char;
-        updateDisplay();
-    }
-
-    function clearAll() {
-        currentInput = "";
-        updateDisplay();
-    }
-
-    function backspace() {
-        currentInput = currentInput.slice(0, -1);
-        updateDisplay();
-    }
-
-    function calculate() {
-        try {
-            let logicInput = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
-            currentInput = eval(logicInput).toString();
-            updateDisplay();
-        } catch (e) {
-            currentInput = "Error";
-            updateDisplay();
-        }
-    }
-
-    function toggleSign() {
-        if (!currentInput) return;
-        currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
-        updateDisplay();
-    }
-</script>
-
-</body>
-</html>
