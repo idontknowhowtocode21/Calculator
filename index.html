@@ -16,24 +16,26 @@
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
             height: 100%;
+            width: 100%;
             background-color: var(--bg-black);
             font-family: 'sans-serif-light', 'Roboto-Light', sans-serif;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* Prevents bouncing/scrolling */
         }
 
-        /* Top Bar Icons */
+        /* Top Nav */
         .top-nav {
             display: flex;
             justify-content: space-between;
-            padding: 25px 20px 10px;
+            padding: 20px;
+            padding-top: env(safe-area-inset-top, 25px); /* Fix for notch phones */
         }
 
         .icon-svg {
@@ -42,14 +44,14 @@
             fill: var(--text-dim);
         }
 
-        /* Display Area */
+        /* Display Area - Takes up remaining space */
         #display-container {
-            flex: 1;
+            flex: 1; 
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             align-items: flex-end;
-            padding: 0 30px 40px 30px;
+            padding: 20px 30px;
         }
 
         #result {
@@ -58,15 +60,17 @@
             font-weight: 200;
             word-break: break-all;
             text-align: right;
+            line-height: 1;
         }
 
-        /* Keypad */
+        /* Keypad - Fixed at bottom */
         #keypad {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
+            gap: 12px;
             padding: 15px;
-            padding-bottom: 40px;
+            padding-bottom: env(safe-area-inset-bottom, 30px);
+            background-color: var(--bg-black);
         }
 
         button {
@@ -75,7 +79,7 @@
             border: none;
             background-color: var(--btn-gray);
             color: var(--text-white);
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 300;
             display: flex;
             align-items: center;
@@ -92,7 +96,7 @@
         .equals-btn { background-color: var(--accent-orange); color: white; }
 
         .backspace-svg {
-            width: 28px;
+            width: 26px;
             fill: var(--text-dim);
         }
     </style>
@@ -101,3 +105,89 @@
 
 <div class="top-nav">
     <svg class="icon-svg" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 4h2v2h-2V7zm0 4h2v2h-2v-2zm-4-4h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm10 2h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/></svg>
+</div>
+
+<div id="display-container">
+    <div id="result">0</div>
+</div>
+
+<div id="keypad">
+    <button class="util-text" onclick="clearAll()">C</button>
+    <button class="util-text" onclick="append('%')">%</button>
+    <button onclick="backspace()">
+        <svg class="backspace-svg" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+    </button>
+    <button class="op-text" onclick="append('÷')">÷</button>
+
+    <button onclick="append('7')">7</button>
+    <button onclick="append('8')">8</button>
+    <button onclick="append('9')">9</button>
+    <button class="op-text" onclick="append('×')">×</button>
+
+    <button onclick="append('4')">4</button>
+    <button onclick="append('5')">5</button>
+    <button onclick="append('6')">6</button>
+    <button class="op-text" onclick="append('-')">-</button>
+
+    <button onclick="append('1')">1</button>
+    <button onclick="append('2')">2</button>
+    <button onclick="append('3')">3</button>
+    <button class="op-text" onclick="append('+')">+</button>
+
+    <button onclick="toggleSign()">+/-</button>
+    <button onclick="append('0')">0</button>
+    <button onclick="append('.')">.</button>
+    <button class="equals-btn" onclick="calculate()">=</button>
+</div>
+
+<script>
+    let currentInput = "";
+    const resultEl = document.getElementById('result');
+    const operators = ['+', '-', '×', '÷', '%'];
+
+    function updateDisplay() {
+        resultEl.innerText = currentInput || "0";
+        let len = resultEl.innerText.length;
+        if (len > 12) resultEl.style.fontSize = "2.5rem";
+        else if (len > 7) resultEl.style.fontSize = "3.5rem";
+        else resultEl.style.fontSize = "5rem";
+    }
+
+    function append(char) {
+        const lastChar = currentInput.slice(-1);
+        if (currentInput === "" && ['×', '÷', '%'].includes(char)) return;
+        if (operators.includes(lastChar) && operators.includes(char)) {
+            currentInput = currentInput.slice(0, -1) + char;
+        } else {
+            if (currentInput === "0" && !operators.includes(char) && char !== ".") {
+                currentInput = char;
+            } else {
+                currentInput += char;
+            }
+        }
+        updateDisplay();
+    }
+
+    function calculate() {
+        try {
+            let logicInput = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+            currentInput = eval(logicInput).toString();
+            updateDisplay();
+        } catch (e) {
+            currentInput = "Error";
+            updateDisplay();
+        }
+    }
+
+    function clearAll() { currentInput = ""; updateDisplay(); }
+    function backspace() { currentInput = currentInput.slice(0, -1); updateDisplay(); }
+    function toggleSign() {
+        if (!currentInput) return;
+        currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
+        updateDisplay();
+    }
+</script>
+
+</body>
+</html>
