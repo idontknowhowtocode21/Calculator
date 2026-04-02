@@ -1,48 +1,65 @@
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* RESET & MOBILE OPTIMIZATION */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
 
 body {
     background-color: #000;
-    margin: 0;
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    align-items: flex-end; /* Keeps calculator at bottom of phone */
     height: 100vh;
-    font-family: -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    overflow: hidden;
 }
 
+/* MAIN CONTAINER */
 .calculator {
     width: 100%;
-    max-width: 450px;
-    padding: 10px 20px 40px 20px;
+    max-width: 500px;
+    padding: 10px 15px 40px 15px; /* Bottom padding for mobile gesture bar */
+    display: flex;
+    flex-direction: column;
 }
 
+/* DISPLAY SECTION */
 .display {
     height: 38vh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 10px 5px;
+    padding: 10px 10px 20px 10px;
 }
 
+/* TOP ICONS */
 .header-icons {
     display: flex;
     justify-content: space-between;
+    padding-top: 5px;
 }
 
 .icon-btn {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     background: #1a1a1a;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #888;
+    color: #999;
 }
 
+/* TEXT AREA (INPUT & PREVIEW) */
 .text-container {
-    text-align: right;
-    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+    overflow: hidden;
 }
 
 .input-line {
@@ -50,44 +67,78 @@ body {
     justify-content: flex-end;
     align-items: center;
     color: white;
-    font-size: 4.8rem;
+    font-size: 5rem; /* Large starting size */
     font-weight: 300;
+    width: 100%;
+    white-space: nowrap;
+    transition: font-size 0.1s ease-out;
+}
+
+#display {
+    display: inline-block;
 }
 
 .cursor {
     width: 2px;
-    height: 60px;
-    background-color: #3d7af5;
-    margin-left: 8px;
+    height: 1.1em;
+    background-color: #3d7af5; /* System blue cursor */
+    margin-left: 4px;
+    flex-shrink: 0;
 }
 
 .preview-result {
     font-size: 1.8rem;
-    color: #777;
-    margin-top: 5px;
-    min-height: 1.8rem;
+    color: #7d7d7d;
+    margin-top: 4px;
+    min-height: 2.2rem;
+    font-weight: 400;
 }
 
+/* BUTTON GRID */
 .button-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
+    gap: 12px;
 }
 
 .btn {
     aspect-ratio: 1;
     border-radius: 50%;
     border: none;
-    font-size: 1.8rem;
-    color: white;
+    font-size: 1.9rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: filter 0.1s;
 }
 
-.btn.num { background-color: #1a1a1a; }
-.btn.top { background-color: #333; color: #ccc; }
-.btn.side { background-color: #333; }
-.btn.orange { background-color: #f65e1c; font-size: 2.2rem; }
+/* BUTTON COLORS PIXEL-PERFECT */
+.btn.num { 
+    background-color: #1a1a1a; 
+}
 
-.btn:active { opacity: 0.6; }
+.btn.top { 
+    background-color: #333333; 
+    color: #d1d1d1;
+}
+
+.btn.side { 
+    background-color: #333333; 
+    color: #fff;
+}
+
+.btn.orange { 
+    background-color: #f65e1c; 
+    font-size: 2.4rem;
+}
+
+/* TOUCH FEEDBACK */
+.btn:active {
+    filter: brightness(1.6);
+}
+
+.btn.orange:active {
+    filter: brightness(1.2);
+}
