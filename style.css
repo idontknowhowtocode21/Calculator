@@ -1,0 +1,74 @@
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: #000;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Keeps it at bottom of phone screen */
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.calculator {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    padding-bottom: 40px;
+}
+
+.display {
+    height: 30vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    color: white;
+}
+
+.icons {
+    display: flex;
+    justify-content: space-between;
+    color: #888;
+    font-size: 1.2rem;
+}
+
+.result {
+    font-size: 5rem;
+    text-align: right;
+    font-weight: 300;
+    overflow: hidden;
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.btn {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: none;
+    background-color: #333;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+/* Button variants */
+.btn.func { background-color: #a5a5a5; color: black; }
+.btn.op { background-color: #444; color: #fff; }
+.btn.equals { background-color: #f65e1c; }
+
+/* Mobile Touch Feedback */
+.btn:active {
+    background-color: #777;
+}
+.btn.equals:active {
+    background-color: #fb8c00;
+}
