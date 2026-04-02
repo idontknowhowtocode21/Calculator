@@ -2,57 +2,169 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Calc</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Calculator</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --btn-num: #333333;
+            --btn-op: #2C2C2C; /* Darker grey for top row as seen in video */
+            --btn-action: #FF9F0A; /* The orange = button */
+            --text-main: #FFFFFF;
+            --text-history: #757575;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            background: var(--bg); margin: 0; padding: 0;
+            font-family: 'Roboto', sans-serif; /* Standard Android font */
+            display: flex; flex-direction: column; height: 100vh;
+            justify-content: flex-end; overflow: hidden;
+        }
+
+        /* Display Area */
+        #display-area {
+            padding: 20px 24px;
+            text-align: right;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        #history { 
+            color: var(--text-history); 
+            font-size: 24px; 
+            min-height: 32px;
+            margin-bottom: 8px;
+        }
+
+        #main-display { 
+            color: var(--text-main); 
+            font-size: 72px; 
+            font-weight: 300;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        /* The blue cursor from your video */
+        #main-display::after {
+            content: "|";
+            color: #4b86f7;
+            margin-left: 2px;
+            font-weight: 100;
+        }
+
+        /* Buttons Grid */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 14px; 
+            padding: 10px 18px 30px 18px;
+        }
+
+        button { 
+            border: none; 
+            aspect-ratio: 1; 
+            border-radius: 50%; 
+            font-size: 28px; 
+            color: white; 
+            cursor: pointer;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: background 0.1s;
+        }
+
+        /* Button Colors based on video */
+        .n { background: var(--btn-num); } /* Numbers */
+        .o { background: var(--btn-op); }  /* Top row & operators */
+        .equals { background: #E67E22; }    /* Samsung Orange */
+        
+        button:active { filter: brightness(1.5); }
+
+        .plus-minus { font-size: 20px; }
+    </style>
 </head>
 <body>
-    <div class="calculator">
-        <div class="display">
-            <div class="header-icons">
-                <div class="icon-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </div>
-                <div class="icon-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
-                </div>
-            </div>
-            <div class="text-container">
-                <div class="input-line">
-                    <span id="display">0</span>
-                    <div class="cursor"></div>
-                </div>
-                <div id="preview" class="preview-result"></div>
-            </div>
-        </div>
-        
-        <div class="button-grid">
-            <button class="btn top" onclick="clearDisplay()">C</button>
-            <button class="btn top" onclick="appendToDisplay('%')">%</button>
-            <button class="btn top" onclick="backspace()">⌫</button>
-            <button class="btn side" onclick="appendToDisplay('/')">÷</button>
-            
-            <button class="btn num" onclick="appendToDisplay('7')">7</button>
-            <button class="btn num" onclick="appendToDisplay('8')">8</button>
-            <button class="btn num" onclick="appendToDisplay('9')">9</button>
-            <button class="btn side" onclick="appendToDisplay('*')">×</button>
-            
-            <button class="btn num" onclick="appendToDisplay('4')">4</button>
-            <button class="btn num" onclick="appendToDisplay('5')">5</button>
-            <button class="btn num" onclick="appendToDisplay('6')">6</button>
-            <button class="btn side" onclick="appendToDisplay('-')">−</button>
-            
-            <button class="btn num" onclick="appendToDisplay('1')">1</button>
-            <button class="btn num" onclick="appendToDisplay('2')">2</button>
-            <button class="btn num" onclick="appendToDisplay('3')">3</button>
-            <button class="btn side" onclick="appendToDisplay('+')">+</button>
-            
-            <button class="btn num" onclick="toggleSign()">+/−</button>
-            <button class="btn num" onclick="appendToDisplay('0')">0</button>
-            <button class="btn num" onclick="appendToDisplay('.')">.</button>
-            <button class="btn orange" onclick="calculate()">=</button>
-        </div>
+
+    <div id="secret-layer" style="display:none;"></div>
+
+    <div id="display-area">
+        <div id="history"></div>
+        <div id="main-display">0</div>
     </div>
-    <script src="script.js"></script>
+
+    <div class="grid">
+        <button class="o" onclick="clearAll()">C</button>
+        <button class="o" onclick="addChar('%')">%</button>
+        <button class="o" onclick="backspace()">⌫</button>
+        <button class="o" onclick="addChar('/')">÷</button>
+        
+        <button class="n" onclick="addChar('7')">7</button>
+        <button class="n" onclick="addChar('8')">8</button>
+        <button class="n" onclick="addChar('9')">9</button>
+        <button class="o" onclick="addChar('*')">×</button>
+        
+        <button class="n" onclick="addChar('4')">4</button>
+        <button class="n" onclick="addChar('5')">5</button>
+        <button class="n" onclick="addChar('6')">6</button>
+        <button class="o" onclick="addChar('-')">−</button>
+        
+        <button class="n" onclick="addChar('1')">1</button>
+        <button class="n" onclick="addChar('2')">2</button>
+        <button class="n" onclick="addChar('3')">3</button>
+        <button class="o" onclick="addChar('+')">+</button>
+        
+        <button class="n plus-minus">+/−</button>
+        <button class="n" onclick="addChar('0')">0</button>
+        <button class="n" onclick="addChar('.')">.</button>
+        <button class="equals" onclick="calculate()">=</button>
+    </div>
+
+    <script>
+        let currentString = "";
+        const historyDiv = document.getElementById('history');
+        const displayDiv = document.getElementById('main-display');
+
+        function addChar(char) {
+            currentString += char;
+            updateUI();
+        }
+
+        function clearAll() {
+            currentString = "";
+            historyDiv.innerText = "";
+            updateUI();
+        }
+
+        function backspace() {
+            currentString = currentString.slice(0, -1);
+            updateUI();
+        }
+
+        function updateUI() {
+            displayDiv.innerText = currentString || "0";
+            // Logic for history preview (light grey text) can go here later
+        }
+
+        function calculate() {
+            if (!currentString) return;
+            try {
+                // Formatting for math
+                let formula = currentString.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+                let result = eval(formula);
+                
+                historyDiv.innerText = currentString;
+                currentString = result.toString();
+                updateUI();
+            } catch (e) {
+                displayDiv.innerText = "Error";
+            }
+        }
+    </script>
 </body>
 </html>
