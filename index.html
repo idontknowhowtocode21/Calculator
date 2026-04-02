@@ -3,31 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Magic Calc</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="calculator">
         <div class="display">
-            <div class="icons">
-                <span>🕒</span>
-                <span>🖩</span>
+            <div class="header-icons">
+                <div class="icon-btn">🕒</div>
+                <div class="icon-btn">🖩</div>
             </div>
-            <div class="result" id="display">0</div>
+            <div class="cursor-container">
+                <div class="result" id="display"></div>
+                <div class="cursor"></div>
+            </div>
         </div>
         
         <div class="button-grid">
-            <button class="btn func" onclick="clearDisplay()">C</button>
-            <button class="btn func" onclick="appendToDisplay('%')">%</button>
-            <button class="btn func" onclick="backspace()">⌫</button>
-            <button class="btn op" onclick="appendToDisplay('/')">÷</button>
+            <button class="btn top" onclick="clearDisplay()">C</button>
+            <button class="btn top" onclick="appendToDisplay('%')">%</button>
+            <button class="btn top" onclick="backspace()">⌫</button>
+            <button class="btn side" onclick="appendToDisplay('/')">÷</button>
             
-            <button class="btn" onclick="appendToDisplay('7')">7</button>
-            <button class="btn" onclick="appendToDisplay('8')">8</button>
-            <button class="btn" onclick="appendToDisplay('9')">9</button>
-            <button class="btn op" onclick="appendToDisplay('*')">×</button>
+            <button class="btn num" onclick="appendToDisplay('7')">7</button>
+            <button class="btn num" onclick="appendToDisplay('8')">8</button>
+            <button class="btn num" onclick="appendToDisplay('9')">9</button>
+            <button class="btn side" onclick="appendToDisplay('*')">×</button>
             
-            <button class="btn" onclick="appendToDisplay('4')">4</button>
-            <button class="btn" onclick="appendToDisplay('5')">5</button>
-            <button class="btn" onclick="appendToDisplay('6')">6</button>
-            <button class="btn op" onclick="appendToDisplay('-')">−</
+            <button class="btn num" onclick="appendToDisplay('4')">4</button>
+            <button class="btn num" onclick="appendToDisplay('5')">5</button>
+            <button class="btn num" onclick="appendToDisplay('6')">6</button>
+            <button class="btn side" onclick="appendToDisplay('-')">−</button>
+            
+            <button class="btn num" onclick="appendToDisplay('1')">1</button>
+            <button class="btn num" onclick="appendToDisplay('2')">2</button>
+            <button class="btn num" onclick="appendToDisplay('3')">3</button>
+            <button class="btn side" onclick="appendToDisplay('+')">+</button>
+            
+            <button class="btn num" onclick="toggleSign()">+/−</button>
+            <button class="btn num" onclick="appendToDisplay('0')">0</button>
+            <button class="btn num" onclick="appendToDisplay('.')">.</button>
+            <button class="btn orange" onclick="calculate()">=</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
