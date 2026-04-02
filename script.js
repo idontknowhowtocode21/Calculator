@@ -1,8 +1,30 @@
 let displayElement = document.getElementById('display');
-let currentInput = '';
+let previewElement = document.getElementById('preview');
+let currentInput = '0';
+
+function updateDisplay() {
+    displayElement.innerText = currentInput;
+    
+    // Logic for live preview result
+    if (currentInput.includes('+') || currentInput.includes('-') || currentInput.includes('*') || currentInput.includes('/')) {
+        try {
+            let expression = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+            let result = eval(expression);
+            if (result !== undefined && result.toString() !== currentInput) {
+                previewElement.innerText = result;
+            } else {
+                previewElement.innerText = '';
+            }
+        } catch (e) {
+            previewElement.innerText = '';
+        }
+    } else {
+        previewElement.innerText = '';
+    }
+}
 
 function appendToDisplay(value) {
-    if (displayElement.innerText === '0' && value !== '.') {
+    if (currentInput === '0' && value !== '.') {
         currentInput = value;
     } else {
         currentInput += value;
@@ -16,26 +38,19 @@ function clearDisplay() {
 }
 
 function backspace() {
-    currentInput = currentInput.slice(0, -1);
-    if (currentInput === '') currentInput = '0';
+    currentInput = currentInput.length > 1 ? currentInput.slice(0, -1) : '0';
     updateDisplay();
 }
 
 function calculate() {
     try {
-        // Use eval carefully for this project
-        // Replacing visual symbols with math symbols
-        let expression = currentInput.replace('×', '*').replace('÷', '/');
+        let expression = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
         currentInput = eval(expression).toString();
+        previewElement.innerText = '';
         updateDisplay();
-    } catch (error) {
+    } catch (e) {
         displayElement.innerText = 'Error';
-        currentInput = '';
     }
-}
-
-function updateDisplay() {
-    displayElement.innerText = currentInput;
 }
 
 function toggleSign() {
