@@ -1,144 +1,122 @@
-/* RESET & MOBILE OPTIMIZATION */
+:root {
+    --bg-color: #000000;
+    --num-btn: #1a1a1a;
+    --op-btn: #333333;
+    --orange-btn: #f65e1c;
+    --text-gray: #7d7d7d;
+    --cursor-blue: #3d7af5;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    font-family: -apple-system, sans-serif;
 }
 
 body {
-    background-color: #000;
+    background-color: var(--bg-color);
+    height: 100dvh; /* Dynamic height to prevent cutoff */
     display: flex;
-    justify-content: center;
-    align-items: flex-end; /* Keeps calculator at bottom of phone */
-    height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    flex-direction: column;
     overflow: hidden;
 }
 
-/* MAIN CONTAINER */
 .calculator {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     width: 100%;
     max-width: 500px;
-    padding: 10px 15px 40px 15px; /* Bottom padding for mobile gesture bar */
-    display: flex;
-    flex-direction: column;
+    margin: 0 auto;
+    padding: 10px 20px env(safe-area-inset-bottom, 20px) 20px;
 }
 
-/* DISPLAY SECTION */
-.display {
-    height: 38vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 10px 10px 20px 10px;
-}
-
-/* TOP ICONS */
+/* Header Icons */
 .header-icons {
     display: flex;
     justify-content: space-between;
-    padding-top: 5px;
+    padding: 10px 0;
 }
 
 .icon-btn {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     background: #1a1a1a;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #999;
+    color: #888;
 }
 
-/* TEXT AREA (INPUT & PREVIEW) */
-.text-container {
+/* Display Area */
+.display-container {
+    flex: 1; /* Takes up all available top space */
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     align-items: flex-end;
-    width: 100%;
+    padding-bottom: 25px;
     overflow: hidden;
 }
 
-.input-line {
+.input-wrapper {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
-    color: white;
-    font-size: 5rem; /* Large starting size */
-    font-weight: 300;
+    justify-content: flex-end;
     width: 100%;
     white-space: nowrap;
-    transition: font-size 0.1s ease-out;
 }
 
 #display {
-    display: inline-block;
+    color: white;
+    font-size: 5rem;
+    font-weight: 300;
+    transition: font-size 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cursor {
     width: 2px;
-    height: 1.1em;
-    background-color: #3d7af5; /* System blue cursor */
-    margin-left: 4px;
-    flex-shrink: 0;
+    height: 0.9em;
+    background-color: var(--cursor-blue);
+    margin-left: 5px;
+    animation: blink 1s step-end infinite;
 }
+
+@keyframes blink { 50% { opacity: 0; } }
 
 .preview-result {
+    color: var(--text-gray);
     font-size: 1.8rem;
-    color: #7d7d7d;
-    margin-top: 4px;
-    min-height: 2.2rem;
-    font-weight: 400;
+    margin-top: 5px;
+    min-height: 2rem;
 }
 
-/* BUTTON GRID */
+/* Button Grid */
 .button-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
+    padding-bottom: 10px;
 }
 
 .btn {
     aspect-ratio: 1;
     border-radius: 50%;
     border: none;
-    font-size: 1.9rem;
+    font-size: 1.8rem;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
     cursor: pointer;
-    transition: filter 0.1s;
 }
 
-/* BUTTON COLORS PIXEL-PERFECT */
-.btn.num { 
-    background-color: #1a1a1a; 
-}
+.btn.num { background: var(--num-btn); }
+.btn.top, .btn.side { background: var(--op-btn); }
+.btn.orange { background: var(--orange-btn); font-size: 2.2rem; }
 
-.btn.top { 
-    background-color: #333333; 
-    color: #d1d1d1;
-}
-
-.btn.side { 
-    background-color: #333333; 
-    color: #fff;
-}
-
-.btn.orange { 
-    background-color: #f65e1c; 
-    font-size: 2.4rem;
-}
-
-/* TOUCH FEEDBACK */
-.btn:active {
-    filter: brightness(1.6);
-}
-
-.btn.orange:active {
-    filter: brightness(1.2);
-}
+.btn:active { opacity: 0.5; }
