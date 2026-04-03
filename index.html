@@ -102,8 +102,10 @@
 </div>
 
 <script>
-    // Juan Tamariz Mnemonica Stack
-    const STACK = ["4C","2H","7D","3C","4H","6D","AS","5H","9S","2S","QH","3D","QC","8H","6S","5S","9H","KC","2D","JH","3S","8S","6H","10C","5D","KD","2C","9D","8C","7H","QS","4D","7C","4S","AD","7H","JC","6C","10S","KH","8D","10H","3H","7S","8H","10D","5C","KS","JD","8H","9C","AC"];
+    // YOUR SPECIFIC MNEMONICA ORDER
+    const STACK = [
+        "4C","2H","7D","3C","4H","6D","AS","5H","9S","2S","QH","3D","QC","8H","6S","5S","9H","KC","2D","JH","3S","8S","6H","10C","5D","KD","2C","3H","8D","5C","KS","JD","8C","10S","KH","JC","7S","10H","AD","4S","7H","4D","AC","9C","JS","QD","7C","QS","10D","6C","AH","9D"
+    ];
 
     let currentInput = "";
     let toxicForce = localStorage.getItem("toxic_force") || "";
@@ -128,9 +130,22 @@
     const operators = ['+', '-', '×', '÷', '%'];
 
     function handleButton(btn) {
-        if (isTappingMode) return;
+        // Master Controller for Tapping Stages
+        if (isTappingMode && btn === 'C') {
+            if (tappingPhase === "random") {
+                currentInput = ""; 
+                forceSequence = acaanTarget.toString().split("");
+                seqIdx = 0;
+                tappingPhase = "forced";
+            } else if (tappingPhase === "forced") {
+                currentInput = "";
+                exitCardMode();
+            }
+            updateDisplay();
+            return;
+        }
 
-        // ACAAN Card Input (Silent)
+        // Silent Card Entry
         if (cardMode && btn !== 'toggle' && btn !== '=') {
             const values = {'1':'A','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','0':'10','back':'J','%':'Q','C':'K'};
             const suits = {'÷':'S','×':'C','-':'H','+':'D'};
@@ -146,17 +161,15 @@
             return;
         }
 
-        // Standard Logic
         switch(btn) {
             case 'C': clearAll(); break;
             case '%': handlePercent(); break;
             case 'back': backspace(); break;
-            case 'toggle': /* Normal toggle if not longpress */ toggleSign(); break;
+            case 'toggle': toggleSign(); break;
             default: append(btn);
         }
     }
 
-    // LONG PRESS TRIGGER LOGIC
     function setupLongPress(el, callback) {
         let t;
         const start = (e) => { e.preventDefault(); t = setTimeout(callback, 800); };
@@ -167,7 +180,7 @@
         el.addEventListener('mouseup', cancel);
     }
 
-    // 1. Toxic Force (Dot Long Press)
+    // Toxic Force Activation
     setupLongPress(dotBtn, () => {
         if (!toxicForce || currentInput === "") return;
         let last = currentInput.slice(-1);
@@ -183,17 +196,17 @@
         cueEl.style.display = "block";
     });
 
-    // 2. Card Mode (Toggle Long Press)
+    // Card Mode Activation
     setupLongPress(toggleBtn, () => {
         cardMode = !cardMode;
         cueEl.innerText = ".";
         cueEl.style.display = cardMode ? "block" : "none";
     });
 
-    // 3. ACAAN Random Phase (Equals Long Press)
+    // Card Demo Activation
     setupLongPress(equalsBtn, () => {
         if (!cardMode || !acaanTarget) return;
-        cueEl.style.display = "none"; // Clean before turning phone
+        cueEl.style.display = "none";
         isTappingMode = true;
         tappingPhase = "random";
     });
@@ -211,24 +224,6 @@
         updateDisplay();
     }
 
-    // "C" Button Logic for Tapping Mode
-    function clearAll() {
-        if (isTappingMode) {
-            if (tappingPhase === "random") {
-                currentInput = ""; // Clear the random demo digits
-                forceSequence = acaanTarget.toString().split("");
-                seqIdx = 0;
-                tappingPhase = "forced";
-            } else {
-                exitCardMode();
-            }
-            updateDisplay();
-            return;
-        }
-        currentInput = "";
-        updateDisplay();
-    }
-
     function exitCardMode() {
         cardMode = false;
         isTappingMode = false;
@@ -237,7 +232,6 @@
         cueEl.style.display = "none";
     }
 
-    // CALCULATOR LOGIC
     function handlePercent() {
         percentCount++;
         clearTimeout(pTimer);
@@ -273,13 +267,14 @@
         updateDisplay();
     }
 
+    function clearAll() { currentInput = ""; updateDisplay(); }
     function backspace() { currentInput = currentInput.slice(0, -1); updateDisplay(); }
 
     function calculate() {
         try {
             let logic = currentInput.replace(/×/g,'*').replace(/÷/g,'/');
             currentInput = eval(logic).toString();
-            exitCardMode(); // Ensure clean state after equals
+            exitCardMode();
             updateDisplay();
         } catch(e) { currentInput = "Error"; updateDisplay(); }
     }
