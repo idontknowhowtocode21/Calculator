@@ -33,14 +33,14 @@
             background: #222; color: white; font-size: 2rem; text-align: center; margin-bottom: 20px; outline: none;
         }
 
-        .top-nav { display: flex; justify-content: space-between; padding: 20px; padding-top: env(safe-area-inset-top, 25px); }
+        .top-nav { display: flex; justify-content: space-between; padding: 20px; padding-top: 25px; }
         .icon-svg { width: 22px; height: 22px; fill: var(--text-dim); }
 
         #display-container { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding: 20px 30px; overflow: hidden; width: 100%; }
         #result { font-size: 5rem; color: var(--text-white); font-weight: 200; text-align: right; line-height: 1.2; white-space: nowrap; overflow-x: auto; overflow-y: hidden; width: 100%; scrollbar-width: none; }
         #result::-webkit-scrollbar { display: none; }
 
-        #keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 15px; padding-bottom: env(safe-area-inset-bottom, 30px); background-color: var(--bg-black); }
+        #keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 15px; padding-bottom: 30px; background-color: var(--bg-black); }
         button { aspect-ratio: 1 / 1; border-radius: 50%; border: none; background-color: var(--btn-gray); color: var(--text-white); font-size: 1.8rem; font-weight: 300; display: flex; align-items: center; justify-content: center; outline: none; position: relative; }
         button:active { background-color: #3a3a3c; }
         .op-text { color: var(--accent-orange); font-size: 2.2rem; }
@@ -48,8 +48,8 @@
         .equals-btn { background-color: var(--accent-orange); color: white; }
         .backspace-svg { width: 26px; fill: var(--text-dim); }
 
-        /* Unified Secret Cue - Shared by Toxic and ACAAN */
-        #tap-cue { position: absolute; bottom: 12px; left: 12px; color: #2c2c2e; font-size: 0.7rem; pointer-events: none; display: none; }
+        /* The Secret Indicator inside +/- button */
+        #tap-cue { position: absolute; bottom: 12px; left: 12px; color: #2c2c2e; font-size: 0.75rem; pointer-events: none; display: none; }
     </style>
 </head>
 <body onclick="handleGlobalTap(event)">
@@ -70,71 +70,79 @@
 </div>
 
 <div id="keypad">
-    <button class="util-text" id="btn-c" onclick="handleButton('C')">C</button>
-    <button class="util-text" id="btn-percent" onclick="handleButton('%')">%</button>
-    <button id="btn-back" onclick="handleButton('back')">
+    <button class="util-text" onclick="handleButton('C')">C</button>
+    <button class="util-text" onclick="handleButton('%')">%</button>
+    <button onclick="handleButton('back')">
         <svg class="backspace-svg" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
     </button>
-    <button class="op-text" id="btn-div" onclick="handleButton('÷')">÷</button>
+    <button class="op-text" onclick="handleButton('÷')">÷</button>
 
     <button onclick="handleButton('7')">7</button>
     <button onclick="handleButton('8')">8</button>
     <button onclick="handleButton('9')">9</button>
-    <button class="op-text" id="btn-mul" onclick="handleButton('×')">×</button>
+    <button class="op-text" onclick="handleButton('×')">×</button>
 
     <button onclick="handleButton('4')">4</button>
     <button onclick="handleButton('5')">5</button>
     <button onclick="handleButton('6')">6</button>
-    <button class="op-text" id="btn-sub" onclick="handleButton('-')">-</button>
+    <button class="op-text" onclick="handleButton('-')">-</button>
 
     <button onclick="handleButton('1')">1</button>
     <button onclick="handleButton('2')">2</button>
     <button onclick="handleButton('3')">3</button>
-    <button class="op-text" id="btn-add" onclick="handleButton('+')">+</button>
+    <button class="op-text" onclick="handleButton('+')">+</button>
 
     <button id="btn-toggle" onclick="handleButton('toggle')">
         +/-
         <span id="tap-cue"></span>
     </button>
     <button onclick="handleButton('0')">0</button>
-    <button id="btn-dot" onclick="handleButton('.')">.</button>
-    <button class="equals-btn" id="btn-equals" onclick="handleButton('=')">=</button>
+    <button id="btn-dot">.</button>
+    <button class="equals-btn" id="btn-equals">=</button>
 </div>
 
 <script>
-    const MNEMONICA = {
-        "4C":1, "2H":2, "7D":3, "3C":4, "4H":5, "6D":6, "AS":7, "5H":8, "9S":9, "2S":10, "QH":11, "3D":12, "QC":13, "8H":14, "6S":15, "5S":16, "9H":17, "KC":18, "2D":19, "JH":20, "3S":21, "8S":22, "6H":23, "10C":24, "5D":25, "KD":26, "2C":27, "9D":28, "8C":29, "7H":30, "QS":31, "4D":32, "7C":33, "4S":34, "AD":35, "4C":36, "JC":37, "6C":38, "10S":39, "KH":40, "8D":41, "10H":42, "3H":43, "7S":44, "8C":45, "10D":46, "5C":47, "KS":48, "JD":49, "8H":50, "9C":51, "AC":52
-    };
-    // Correcting duplicate entries in standard stack strings for lookup
+    // Juan Tamariz Mnemonica Stack
     const STACK = ["4C","2H","7D","3C","4H","6D","AS","5H","9S","2S","QH","3D","QC","8H","6S","5S","9H","KC","2D","JH","3S","8S","6H","10C","5D","KD","2C","9D","8C","7H","QS","4D","7C","4S","AD","7H","JC","6C","10S","KH","8D","10H","3H","7S","8H","10D","5C","KS","JD","8H","9C","AC"];
 
     let currentInput = "";
     let toxicForce = localStorage.getItem("toxic_force") || "";
-    
-    // States
+    let percentCount = 0;
+    let pTimer;
+
+    // Mentalism States
     let isTappingMode = false;
     let forceSequence = [];
     let seqIdx = 0;
     let tappingPhase = "normal"; // normal, random, forced
 
     let cardMode = false;
-    let currentCardValue = ""; // Store temp card value
+    let currentCardValue = "";
     let acaanTarget = null;
 
     const resultEl = document.getElementById('result');
     const cueEl = document.getElementById('tap-cue');
+    const dotBtn = document.getElementById('btn-dot');
+    const equalsBtn = document.getElementById('btn-equals');
+    const toggleBtn = document.getElementById('btn-toggle');
     const operators = ['+', '-', '×', '÷', '%'];
-
-    // SETUP: % % %
-    let percentCount = 0;
-    let pTimer;
 
     function handleButton(btn) {
         if (isTappingMode) return;
 
-        // ACAAN Card Entry Logic
+        // ACAAN Card Input (Silent)
         if (cardMode && btn !== 'toggle' && btn !== '=') {
-            processCardInput(btn);
+            const values = {'1':'A','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','0':'10','back':'J','%':'Q','C':'K'};
+            const suits = {'÷':'S','×':'C','-':'H','+':'D'};
+
+            if (values[btn]) {
+                currentCardValue = values[btn];
+            } else if (suits[btn] && currentCardValue) {
+                let card = currentCardValue + suits[btn];
+                acaanTarget = STACK.indexOf(card) + 1;
+                cueEl.innerText = acaanTarget || "!!";
+                currentCardValue = "";
+            }
             return;
         }
 
@@ -143,76 +151,55 @@
             case 'C': clearAll(); break;
             case '%': handlePercent(); break;
             case 'back': backspace(); break;
-            case '=': calculate(); break;
-            case 'toggle': /* Normal +/- handled by longpress listener below */ break;
+            case 'toggle': /* Normal toggle if not longpress */ toggleSign(); break;
             default: append(btn);
         }
     }
 
-    function processCardInput(btn) {
-        const values = {'1':'A','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','0':'10','back':'J','%':'Q','C':'K'};
-        const suits = {'÷':'S','×':'C','-':'H','+':'D'};
-
-        if (values[btn]) {
-            currentCardValue = values[btn];
-        } else if (suits[btn] && currentCardValue) {
-            let card = currentCardValue + suits[btn];
-            acaanTarget = STACK.indexOf(card) + 1;
-            cueEl.innerText = acaanTarget; // Show stack pos in secret cue
-            currentCardValue = "";
-        }
-    }
-
-    // LONG PRESS LISTENERS
-    function addLongPress(id, callback) {
-        const el = document.getElementById(id);
+    // LONG PRESS TRIGGER LOGIC
+    function setupLongPress(el, callback) {
         let t;
         const start = (e) => { e.preventDefault(); t = setTimeout(callback, 800); };
-        const end = () => clearTimeout(t);
+        const cancel = () => clearTimeout(t);
         el.addEventListener('touchstart', start);
-        el.addEventListener('touchend', end);
+        el.addEventListener('touchend', cancel);
         el.addEventListener('mousedown', start);
-        el.addEventListener('mouseup', end);
+        el.addEventListener('mouseup', cancel);
     }
 
-    // 1. Toxic Activation (Dot)
-    addLongPress('btn-dot', () => {
+    // 1. Toxic Force (Dot Long Press)
+    setupLongPress(dotBtn, () => {
         if (!toxicForce || currentInput === "") return;
         let last = currentInput.slice(-1);
         if (!['+', '×'].includes(last)) return;
         let target = parseFloat(toxicForce);
         let cur = eval(currentInput.slice(0, -1).replace(/×/g,'*').replace(/÷/g,'/'));
         let req = (last === '+') ? (target - cur).toString() : (target / cur).toFixed(4).replace(/\.?0+$/,"");
-        startTapping(req);
-    });
-
-    // 2. Card Mode Activation (+/-)
-    addLongPress('btn-toggle', () => {
-        cardMode = !cardMode;
-        cueEl.innerText = ".";
-        cueEl.style.display = cardMode ? "block" : "none";
-    });
-
-    // 3. ACAAN Tapping Start (=)
-    addLongPress('btn-equals', () => {
-        if (!cardMode || !acaanTarget) return;
-        cueEl.style.display = "none"; // Hide indicator IMMEDIATELY
-        isTappingMode = true;
-        tappingPhase = "random";
-    });
-
-    function startTapping(val) {
-        forceSequence = val.split("");
+        forceSequence = req.split("");
         seqIdx = 0;
         isTappingMode = true;
         tappingPhase = "forced";
         cueEl.innerText = forceSequence.length;
         cueEl.style.display = "block";
-    }
+    });
+
+    // 2. Card Mode (Toggle Long Press)
+    setupLongPress(toggleBtn, () => {
+        cardMode = !cardMode;
+        cueEl.innerText = ".";
+        cueEl.style.display = cardMode ? "block" : "none";
+    });
+
+    // 3. ACAAN Random Phase (Equals Long Press)
+    setupLongPress(equalsBtn, () => {
+        if (!cardMode || !acaanTarget) return;
+        cueEl.style.display = "none"; // Clean before turning phone
+        isTappingMode = true;
+        tappingPhase = "random";
+    });
 
     function handleGlobalTap(e) {
         if (!isTappingMode) return;
-
         if (tappingPhase === "random") {
             currentInput += Math.floor(Math.random() * 9) + 1;
         } else if (tappingPhase === "forced") {
@@ -224,23 +211,23 @@
         updateDisplay();
     }
 
-    // BACKSPACE override during Tapping Mode
-    const oldBack = backspace;
-    backspace = function() {
+    // "C" Button Logic for Tapping Mode
+    function clearAll() {
         if (isTappingMode) {
             if (tappingPhase === "random") {
-                // Switch to real force
+                currentInput = ""; // Clear the random demo digits
                 forceSequence = acaanTarget.toString().split("");
                 seqIdx = 0;
                 tappingPhase = "forced";
             } else {
-                // Exit card mode entirely
                 exitCardMode();
             }
+            updateDisplay();
             return;
         }
-        oldBack();
-    };
+        currentInput = "";
+        updateDisplay();
+    }
 
     function exitCardMode() {
         cardMode = false;
@@ -248,17 +235,16 @@
         tappingPhase = "normal";
         acaanTarget = null;
         cueEl.style.display = "none";
-        updateDisplay();
     }
 
-    // CALC LOGIC
+    // CALCULATOR LOGIC
     function handlePercent() {
         percentCount++;
         clearTimeout(pTimer);
         if (percentCount === 3) {
             document.getElementById('secret-overlay').style.display = 'flex';
             percentCount = 0;
-            if (currentInput.endsWith('%%')) currentInput = currentInput.slice(0, -2);
+            if (currentInput.endsWith('%%')) currentInput = currentInput.slice(0,-2);
             updateDisplay();
         } else {
             append('%');
@@ -287,16 +273,23 @@
         updateDisplay();
     }
 
+    function backspace() { currentInput = currentInput.slice(0, -1); updateDisplay(); }
+
     function calculate() {
         try {
-            currentInput = eval(currentInput.replace(/×/g,'*').replace(/÷/g,'/')).toString();
-            isTappingMode = false; tappingPhase = "normal"; cueEl.style.display = "none";
+            let logic = currentInput.replace(/×/g,'*').replace(/÷/g,'/');
+            currentInput = eval(logic).toString();
+            exitCardMode(); // Ensure clean state after equals
             updateDisplay();
         } catch(e) { currentInput = "Error"; updateDisplay(); }
     }
 
-    function clearAll() { currentInput = ""; updateDisplay(); isTappingMode = false; cueEl.style.display = "none"; }
-    function backspace() { currentInput = currentInput.slice(0, -1); updateDisplay(); }
+    function toggleSign() {
+        if (!currentInput) return;
+        currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
+        updateDisplay();
+    }
+
     function updateDisplay() {
         resultEl.innerText = currentInput || "0";
         let l = resultEl.innerText.length;
