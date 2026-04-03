@@ -80,7 +80,7 @@
             align-items: flex-end;
             padding: 20px 30px;
             overflow: hidden;
-            position: relative;
+            width: 100%;
         }
 
         #result {
@@ -90,8 +90,15 @@
             text-align: right;
             line-height: 1.2;
             white-space: nowrap;
-            overflow: hidden;
+            /* Allow horizontal scroll but hide scrollbar */
+            overflow-x: auto;
+            overflow-y: hidden;
             width: 100%;
+            scrollbar-width: none;
+        }
+
+        #result::-webkit-scrollbar {
+            display: none;
         }
 
         /* Faint Secret Cue */
@@ -99,7 +106,7 @@
             position: absolute;
             bottom: 5px;
             right: 15px;
-            color: #111; /* Extremely faint against black */
+            color: #111; 
             font-size: 0.9rem;
             pointer-events: none;
             display: none;
@@ -184,13 +191,9 @@
 
 <script>
     let currentInput = "";
-    // Pull force number from permanent browser memory
     let forceNum = localStorage.getItem("mentalist_force") || ""; 
-    
     let percentCount = 0;
     let percentTimer;
-    
-    // Performance State
     let isTappingMode = false;
     let forceSequence = [];
     let sequenceIndex = 0;
@@ -200,15 +203,12 @@
     const dotBtn = document.getElementById('dot-btn');
     const operators = ['+', '-', '×', '÷', '%'];
 
-    // --- 1. SETUP: Triple Tap % ---
     function handlePercent() {
         percentCount++;
         clearTimeout(percentTimer);
-        
         if (percentCount === 3) {
             document.getElementById('secret-overlay').style.display = 'flex';
             percentCount = 0;
-            // Clean display of the % taps
             if (currentInput.endsWith('%%')) currentInput = currentInput.slice(0, -2);
             updateDisplay();
         } else {
@@ -220,13 +220,12 @@
     function saveForce() {
         const val = document.getElementById('force-input').value;
         forceNum = val;
-        localStorage.setItem("mentalist_force", val); // BURN INTO MEMORY
+        localStorage.setItem("mentalist_force", val);
         document.getElementById('secret-overlay').style.display = 'none';
         currentInput = "";
         updateDisplay();
     }
 
-    // --- 2. ACTIVATION: Long Press Dot ---
     let dotTimer;
     dotBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
@@ -244,7 +243,6 @@
 
     function activateTappingMode() {
         if (!forceNum || currentInput === "") return;
-        
         let lastChar = currentInput.slice(-1);
         if (!['+', '×'].includes(lastChar)) return;
 
@@ -254,54 +252,48 @@
         try {
             let currentTotal = eval(mathString);
             let needed;
-
-            if (lastChar === '+') {
-                needed = (target - currentTotal).toString();
-            } else if (lastChar === '×') {
+            if (lastChar === '+') needed = (target - currentTotal).toString();
+            else if (lastChar === '×') {
                 needed = (target / currentTotal).toString();
                 needed = parseFloat(needed).toFixed(4).replace(/\.?0+$/, "");
             }
-            
             forceSequence = needed.split("");
             sequenceIndex = 0;
             isTappingMode = true;
-
-            // Show secret cue: number of digits to tap
             cueEl.innerText = forceSequence.length;
             cueEl.style.display = 'block';
-        } catch(e) { console.error("Math Error"); }
+        } catch(e) {}
     }
 
-    // --- 3. THE REVEAL: Global Taps ---
     function handleGlobalTap(event) {
         if (!isTappingMode) return;
-
         if (sequenceIndex < forceSequence.length) {
             currentInput += forceSequence[sequenceIndex];
             sequenceIndex++;
             updateDisplay();
-            
-            // Hide secret cue after first tap
             cueEl.style.display = 'none';
         }
     }
 
-    // --- 4. CORE CALCULATOR LOGIC ---
     function updateDisplay() {
         resultEl.innerText = currentInput || "0";
         let len = resultEl.innerText.length;
-        if (len > 15) resultEl.style.fontSize = "1.8rem";
-        else if (len > 11) resultEl.style.fontSize = "2.5rem";
-        else if (len > 7) resultEl.style.fontSize = "3.5rem";
+        // Adjusted font-size logic for smoother scaling
+        if (len > 15) resultEl.style.fontSize = "2.2rem";
+        else if (len > 11) resultEl.style.fontSize = "3rem";
+        else if (len > 7) resultEl.style.fontSize = "4rem";
         else resultEl.style.fontSize = "5rem";
+
+        // AUTO-SCROLL TO RIGHT
+        setTimeout(() => {
+            resultEl.scrollLeft = resultEl.scrollWidth;
+        }, 0);
     }
 
     function append(char) {
         if (isTappingMode) return; 
         const lastChar = currentInput.slice(-1);
         if (currentInput === "" && ['×', '÷', '%'].includes(char)) return;
-        
-        // Smart symbol switching (no stacking)
         if (operators.includes(lastChar) && operators.includes(char)) {
             currentInput = currentInput.slice(0, -1) + char;
         } else {
@@ -319,8 +311,6 @@
             let logicInput = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
             currentInput = eval(logicInput).toString();
             updateDisplay();
-            
-            // Performance reset but REMAINS saved in localStorage
             isTappingMode = false;
             forceSequence = [];
             sequenceIndex = 0;
