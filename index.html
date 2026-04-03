@@ -48,7 +48,7 @@
         .equals-btn { background-color: var(--accent-orange); color: white; }
         .backspace-svg { width: 26px; fill: var(--text-dim); }
 
-        /* The Secret Indicator inside +/- button */
+        /* Secret Indicator inside +/- button */
         #tap-cue { position: absolute; bottom: 12px; left: 12px; color: #2c2c2e; font-size: 0.75rem; pointer-events: none; display: none; }
     </style>
 </head>
@@ -70,53 +70,52 @@
 </div>
 
 <div id="keypad">
-    <button class="util-text" onclick="handleButton('C')">C</button>
-    <button class="util-text" onclick="handleButton('%')">%</button>
-    <button onclick="handleButton('back')">
+    <button class="util-text" id="btn-c" onclick="handleButton('C')">C</button>
+    <button class="util-text" id="btn-percent" onclick="handleButton('%')">%</button>
+    <button id="btn-back" onclick="handleButton('back')">
         <svg class="backspace-svg" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
     </button>
-    <button class="op-text" onclick="handleButton('÷')">÷</button>
+    <button class="op-text" id="btn-div" onclick="handleButton('÷')">÷</button>
 
     <button onclick="handleButton('7')">7</button>
     <button onclick="handleButton('8')">8</button>
     <button onclick="handleButton('9')">9</button>
-    <button class="op-text" onclick="handleButton('×')">×</button>
+    <button class="op-text" id="btn-mul" onclick="handleButton('×')">×</button>
 
     <button onclick="handleButton('4')">4</button>
     <button onclick="handleButton('5')">5</button>
     <button onclick="handleButton('6')">6</button>
-    <button class="op-text" onclick="handleButton('-')">-</button>
+    <button class="op-text" id="btn-sub" onclick="handleButton('-')">-</button>
 
     <button onclick="handleButton('1')">1</button>
     <button onclick="handleButton('2')">2</button>
     <button onclick="handleButton('3')">3</button>
-    <button class="op-text" onclick="handleButton('+')">+</button>
+    <button class="op-text" id="btn-add" onclick="handleButton('+')">+</button>
 
     <button id="btn-toggle" onclick="handleButton('toggle')">
         +/-
         <span id="tap-cue"></span>
     </button>
     <button onclick="handleButton('0')">0</button>
-    <button id="btn-dot">.</button>
-    <button class="equals-btn" id="btn-equals">=</button>
+    <button id="btn-dot" onclick="handleButton('.')">.</button>
+    <button class="equals-btn" id="btn-equals" onclick="handleButton('=')">=</button>
 </div>
 
 <script>
-    // YOUR SPECIFIC MNEMONICA ORDER
+    // Juan Tamariz Mnemonica Stack (Corrected Indexing 1-52)
     const STACK = [
         "4C","2H","7D","3C","4H","6D","AS","5H","9S","2S","QH","3D","QC","8H","6S","5S","9H","KC","2D","JH","3S","8S","6H","10C","5D","KD","2C","3H","8D","5C","KS","JD","8C","10S","KH","JC","7S","10H","AD","4S","7H","4D","AC","9C","JS","QD","7C","QS","10D","6C","AH","9D"
     ];
 
     let currentInput = "";
     let toxicForce = localStorage.getItem("toxic_force") || "";
-    let percentCount = 0;
-    let pTimer;
-
-    // Mentalism States
+    
+    // Independent States
     let isTappingMode = false;
+    let tappingType = null; // 'toxic' or 'acaan'
+    let tappingPhase = "normal"; // normal, random, forced
     let forceSequence = [];
     let seqIdx = 0;
-    let tappingPhase = "normal"; // normal, random, forced
 
     let cardMode = false;
     let currentCardValue = "";
@@ -124,16 +123,13 @@
 
     const resultEl = document.getElementById('result');
     const cueEl = document.getElementById('tap-cue');
-    const dotBtn = document.getElementById('btn-dot');
-    const equalsBtn = document.getElementById('btn-equals');
-    const toggleBtn = document.getElementById('btn-toggle');
     const operators = ['+', '-', '×', '÷', '%'];
 
     function handleButton(btn) {
-        // Master Controller for Tapping Stages
-        if (isTappingMode && btn === 'C') {
+        // Master Controller for ACAAN Stages
+        if (tappingType === 'acaan' && btn === 'C') {
             if (tappingPhase === "random") {
-                currentInput = ""; 
+                currentInput = ""; // Clear demo random digits
                 forceSequence = acaanTarget.toString().split("");
                 seqIdx = 0;
                 tappingPhase = "forced";
@@ -145,8 +141,8 @@
             return;
         }
 
-        // Silent Card Entry
-        if (cardMode && btn !== 'toggle' && btn !== '=') {
+        // Silent Card Entry (Card Mode)
+        if (cardMode && !isTappingMode && btn !== 'toggle' && btn !== '=') {
             const values = {'1':'A','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','0':'10','back':'J','%':'Q','C':'K'};
             const suits = {'÷':'S','×':'C','-':'H','+':'D'};
 
@@ -161,16 +157,20 @@
             return;
         }
 
+        // Normal Flow
         switch(btn) {
             case 'C': clearAll(); break;
             case '%': handlePercent(); break;
             case 'back': backspace(); break;
+            case '=': calculate(); break;
             case 'toggle': toggleSign(); break;
+            case '.': append('.'); break;
             default: append(btn);
         }
     }
 
-    function setupLongPress(el, callback) {
+    function setupLongPress(id, callback) {
+        const el = document.getElementById(id);
         let t;
         const start = (e) => { e.preventDefault(); t = setTimeout(callback, 800); };
         const cancel = () => clearTimeout(t);
@@ -180,42 +180,49 @@
         el.addEventListener('mouseup', cancel);
     }
 
-    // Toxic Force Activation
-    setupLongPress(dotBtn, () => {
-        if (!toxicForce || currentInput === "") return;
+    // TRIGGER: Toxic Force (Dot Long Press)
+    setupLongPress('btn-dot', () => {
+        if (!toxicForce || currentInput === "" || cardMode) return;
         let last = currentInput.slice(-1);
         if (!['+', '×'].includes(last)) return;
+        
         let target = parseFloat(toxicForce);
         let cur = eval(currentInput.slice(0, -1).replace(/×/g,'*').replace(/÷/g,'/'));
         let req = (last === '+') ? (target - cur).toString() : (target / cur).toFixed(4).replace(/\.?0+$/,"");
+        
         forceSequence = req.split("");
         seqIdx = 0;
         isTappingMode = true;
-        tappingPhase = "forced";
+        tappingType = 'toxic';
+        tappingPhase = 'forced';
         cueEl.innerText = forceSequence.length;
         cueEl.style.display = "block";
     });
 
-    // Card Mode Activation
-    setupLongPress(toggleBtn, () => {
+    // TRIGGER: Card Mode Activation (+/- Long Press)
+    setupLongPress('btn-toggle', () => {
+        if (isTappingMode) return;
         cardMode = !cardMode;
         cueEl.innerText = ".";
         cueEl.style.display = cardMode ? "block" : "none";
     });
 
-    // Card Demo Activation
-    setupLongPress(equalsBtn, () => {
+    // TRIGGER: ACAAN Demo Phase (Equals Long Press)
+    setupLongPress('btn-equals', () => {
         if (!cardMode || !acaanTarget) return;
-        cueEl.style.display = "none";
+        cueEl.style.display = "none"; // Clean screen state
         isTappingMode = true;
+        tappingType = 'acaan';
         tappingPhase = "random";
     });
 
     function handleGlobalTap(e) {
         if (!isTappingMode) return;
-        if (tappingPhase === "random") {
+
+        if (tappingType === 'acaan' && tappingPhase === "random") {
             currentInput += Math.floor(Math.random() * 9) + 1;
-        } else if (tappingPhase === "forced") {
+        } else {
+            // Shared Logic for Toxic and Forced ACAAN
             if (seqIdx < forceSequence.length) {
                 currentInput += forceSequence[seqIdx++];
                 cueEl.style.display = "none";
@@ -227,6 +234,7 @@
     function exitCardMode() {
         cardMode = false;
         isTappingMode = false;
+        tappingType = null;
         tappingPhase = "normal";
         acaanTarget = null;
         cueEl.style.display = "none";
@@ -256,6 +264,7 @@
     }
 
     function append(char) {
+        if (isTappingMode) return;
         const last = currentInput.slice(-1);
         if (currentInput === "" && ['×', '÷', '%'].includes(char)) return;
         if (operators.includes(last) && operators.includes(char)) {
@@ -267,10 +276,19 @@
         updateDisplay();
     }
 
-    function clearAll() { currentInput = ""; updateDisplay(); }
-    function backspace() { currentInput = currentInput.slice(0, -1); updateDisplay(); }
+    function clearAll() {
+        currentInput = "";
+        isTappingMode = false;
+        tappingType = null;
+        tappingPhase = "normal";
+        cueEl.style.display = "none";
+        updateDisplay();
+    }
+
+    function backspace() { if (!isTappingMode) currentInput = currentInput.slice(0, -1); updateDisplay(); }
 
     function calculate() {
+        if (isTappingMode && tappingType === 'acaan') return; // Prevent calc during blind taps
         try {
             let logic = currentInput.replace(/×/g,'*').replace(/÷/g,'/');
             currentInput = eval(logic).toString();
@@ -280,7 +298,7 @@
     }
 
     function toggleSign() {
-        if (!currentInput) return;
+        if (!currentInput || isTappingMode) return;
         currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
         updateDisplay();
     }
