@@ -90,27 +90,13 @@
             text-align: right;
             line-height: 1.2;
             white-space: nowrap;
-            /* Allow horizontal scroll but hide scrollbar */
             overflow-x: auto;
             overflow-y: hidden;
             width: 100%;
             scrollbar-width: none;
         }
 
-        #result::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Faint Secret Cue */
-        #tap-cue {
-            position: absolute;
-            bottom: 5px;
-            right: 15px;
-            color: #111; 
-            font-size: 0.9rem;
-            pointer-events: none;
-            display: none;
-        }
+        #result::-webkit-scrollbar { display: none; }
 
         #keypad {
             display: grid;
@@ -133,6 +119,7 @@
             align-items: center;
             justify-content: center;
             outline: none;
+            position: relative; /* Needed for the cue positioning */
         }
 
         button:active { background-color: #3a3a3c; }
@@ -140,6 +127,17 @@
         .util-text { color: var(--text-dim); }
         .equals-btn { background-color: var(--accent-orange); color: white; }
         .backspace-svg { width: 26px; fill: var(--text-dim); }
+
+        /* Faint Secret Cue - Now inside the +/- button */
+        #tap-cue {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            color: #2c2c2e; /* Dark gray to blend into the button */
+            font-size: 0.7rem;
+            pointer-events: none;
+            display: none;
+        }
     </style>
 </head>
 <body onclick="handleGlobalTap(event)">
@@ -157,7 +155,6 @@
 
 <div id="display-container">
     <div id="result">0</div>
-    <div id="tap-cue"></div>
 </div>
 
 <div id="keypad">
@@ -183,7 +180,10 @@
     <button onclick="append('3')">3</button>
     <button class="op-text" onclick="append('+')">+</button>
 
-    <button onclick="toggleSign()">+/-</button>
+    <button onclick="toggleSign()">
+        +/-
+        <span id="tap-cue"></span>
+    </button>
     <button onclick="append('0')">0</button>
     <button id="dot-btn">.</button>
     <button class="equals-btn" onclick="calculate()">=</button>
@@ -278,13 +278,11 @@
     function updateDisplay() {
         resultEl.innerText = currentInput || "0";
         let len = resultEl.innerText.length;
-        // Adjusted font-size logic for smoother scaling
         if (len > 15) resultEl.style.fontSize = "2.2rem";
         else if (len > 11) resultEl.style.fontSize = "3rem";
         else if (len > 7) resultEl.style.fontSize = "4rem";
         else resultEl.style.fontSize = "5rem";
 
-        // AUTO-SCROLL TO RIGHT
         setTimeout(() => {
             resultEl.scrollLeft = resultEl.scrollWidth;
         }, 0);
