@@ -157,4 +157,199 @@
     <button class="util-text" onclick="clearAll()">C</button>
     <button class="util-text" onclick="handlePercent()">%</button>
     <button onclick="backspace()">
-        <svg class="backspace-svg" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.
+        <svg class="backspace-svg" viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+    </button>
+    <button class="op-text" onclick="append('÷')">÷</button>
+
+    <button onclick="append('7')">7</button>
+    <button onclick="append('8')">8</button>
+    <button onclick="append('9')">9</button>
+    <button class="op-text" onclick="append('×')">×</button>
+
+    <button onclick="append('4')">4</button>
+    <button onclick="append('5')">5</button>
+    <button onclick="append('6')">6</button>
+    <button class="op-text" onclick="append('-')">-</button>
+
+    <button onclick="append('1')">1</button>
+    <button onclick="append('2')">2</button>
+    <button onclick="append('3')">3</button>
+    <button class="op-text" onclick="append('+')">+</button>
+
+    <button onclick="toggleSign()">+/-</button>
+    <button onclick="append('0')">0</button>
+    <button id="dot-btn">.</button>
+    <button class="equals-btn" onclick="calculate()">=</button>
+</div>
+
+<script>
+    let currentInput = "";
+    // Pull force number from permanent browser memory
+    let forceNum = localStorage.getItem("mentalist_force") || ""; 
+    
+    let percentCount = 0;
+    let percentTimer;
+    
+    // Performance State
+    let isTappingMode = false;
+    let forceSequence = [];
+    let sequenceIndex = 0;
+
+    const resultEl = document.getElementById('result');
+    const cueEl = document.getElementById('tap-cue');
+    const dotBtn = document.getElementById('dot-btn');
+    const operators = ['+', '-', '×', '÷', '%'];
+
+    // --- 1. SETUP: Triple Tap % ---
+    function handlePercent() {
+        percentCount++;
+        clearTimeout(percentTimer);
+        
+        if (percentCount === 3) {
+            document.getElementById('secret-overlay').style.display = 'flex';
+            percentCount = 0;
+            // Clean display of the % taps
+            if (currentInput.endsWith('%%')) currentInput = currentInput.slice(0, -2);
+            updateDisplay();
+        } else {
+            append('%');
+            percentTimer = setTimeout(() => { percentCount = 0; }, 600);
+        }
+    }
+
+    function saveForce() {
+        const val = document.getElementById('force-input').value;
+        forceNum = val;
+        localStorage.setItem("mentalist_force", val); // BURN INTO MEMORY
+        document.getElementById('secret-overlay').style.display = 'none';
+        currentInput = "";
+        updateDisplay();
+    }
+
+    // --- 2. ACTIVATION: Long Press Dot ---
+    let dotTimer;
+    dotBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        dotTimer = setTimeout(activateTappingMode, 800);
+    });
+    dotBtn.addEventListener('touchend', () => {
+        clearTimeout(dotTimer);
+        if (!isTappingMode) append('.');
+    });
+    dotBtn.addEventListener('mousedown', () => dotTimer = setTimeout(activateTappingMode, 800));
+    dotBtn.addEventListener('mouseup', () => {
+        clearTimeout(dotTimer);
+        if (!isTappingMode) append('.');
+    });
+
+    function activateTappingMode() {
+        if (!forceNum || currentInput === "") return;
+        
+        let lastChar = currentInput.slice(-1);
+        if (!['+', '×'].includes(lastChar)) return;
+
+        let target = parseFloat(forceNum);
+        let mathString = currentInput.slice(0, -1).replace(/×/g, '*').replace(/÷/g, '/');
+        
+        try {
+            let currentTotal = eval(mathString);
+            let needed;
+
+            if (lastChar === '+') {
+                needed = (target - currentTotal).toString();
+            } else if (lastChar === '×') {
+                needed = (target / currentTotal).toString();
+                needed = parseFloat(needed).toFixed(4).replace(/\.?0+$/, "");
+            }
+            
+            forceSequence = needed.split("");
+            sequenceIndex = 0;
+            isTappingMode = true;
+
+            // Show secret cue: number of digits to tap
+            cueEl.innerText = forceSequence.length;
+            cueEl.style.display = 'block';
+        } catch(e) { console.error("Math Error"); }
+    }
+
+    // --- 3. THE REVEAL: Global Taps ---
+    function handleGlobalTap(event) {
+        if (!isTappingMode) return;
+
+        if (sequenceIndex < forceSequence.length) {
+            currentInput += forceSequence[sequenceIndex];
+            sequenceIndex++;
+            updateDisplay();
+            
+            // Hide secret cue after first tap
+            cueEl.style.display = 'none';
+        }
+    }
+
+    // --- 4. CORE CALCULATOR LOGIC ---
+    function updateDisplay() {
+        resultEl.innerText = currentInput || "0";
+        let len = resultEl.innerText.length;
+        if (len > 15) resultEl.style.fontSize = "1.8rem";
+        else if (len > 11) resultEl.style.fontSize = "2.5rem";
+        else if (len > 7) resultEl.style.fontSize = "3.5rem";
+        else resultEl.style.fontSize = "5rem";
+    }
+
+    function append(char) {
+        if (isTappingMode) return; 
+        const lastChar = currentInput.slice(-1);
+        if (currentInput === "" && ['×', '÷', '%'].includes(char)) return;
+        
+        // Smart symbol switching (no stacking)
+        if (operators.includes(lastChar) && operators.includes(char)) {
+            currentInput = currentInput.slice(0, -1) + char;
+        } else {
+            if (currentInput === "0" && !operators.includes(char) && char !== ".") {
+                currentInput = char;
+            } else {
+                currentInput += char;
+            }
+        }
+        updateDisplay();
+    }
+
+    function calculate() {
+        try {
+            let logicInput = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+            currentInput = eval(logicInput).toString();
+            updateDisplay();
+            
+            // Performance reset but REMAINS saved in localStorage
+            isTappingMode = false;
+            forceSequence = [];
+            sequenceIndex = 0;
+            cueEl.style.display = 'none';
+        } catch (e) {
+            currentInput = "Error";
+            updateDisplay();
+        }
+    }
+
+    function clearAll() { 
+        currentInput = ""; 
+        updateDisplay(); 
+        isTappingMode = false; 
+        cueEl.style.display = 'none'; 
+    }
+
+    function backspace() { 
+        if(!isTappingMode) { 
+            currentInput = currentInput.slice(0, -1); 
+            updateDisplay(); 
+        } 
+    }
+
+    function toggleSign() {
+        if (!currentInput || isTappingMode) return;
+        currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
+        updateDisplay();
+    }
+</script>
+</body>
+</html>
